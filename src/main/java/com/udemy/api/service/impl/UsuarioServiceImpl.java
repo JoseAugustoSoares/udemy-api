@@ -46,19 +46,23 @@ public class UsuarioServiceImpl implements UsuarioService {
 	@Override
 	@Transactional
 	public Usuario salvarUsuario(Usuario usuario) {
-		// TODO Auto-generated method stub
 		validarEmail(usuario.getEmail());
 		return repository.save(usuario);
 	}
 
 	@Override
 	public void validarEmail(String email) {
-		// TODO Auto-generated method stub
 		boolean existe = repository.existsByEmail(email);
 		if(existe) 
 		{
 			throw new RegraNegocioException("Já existe um usuario cadastrado com esse e-mail.");
 		}
+	}
+	
+	@Override
+	public Optional<Usuario> obterPorId(Long id)
+	{
+		return repository.findById(id);
 	}
 
 }

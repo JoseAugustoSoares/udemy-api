@@ -3,6 +3,7 @@ package com.udemy.api.service.impl;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.hibernate.criterion.Example;
 import org.springframework.data.domain.ExampleMatcher;
@@ -13,8 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.udemy.api.exception.RegraNegocioException;
 import com.udemy.api.model.entity.Lancamento;
 import com.udemy.api.model.enums.StatusLancamento;
+import com.udemy.api.model.enums.TipoLancamento;
 import com.udemy.api.model.repository.LancamentoRepository;
 import com.udemy.api.service.LancamentoService;
+
 
 
 @Service
@@ -55,10 +58,10 @@ public class LancamentoServiceImpl implements LancamentoService {
 	public List<Lancamento> buscar(Lancamento lancamentoFiltro) 
 	{
 		
-		Example example = Example.of(lancamentoFiltro, 
+		Example example = (Example) org.springframework.data.domain.Example.of(lancamentoFiltro, 
 				ExampleMatcher.matching()
 				.withIgnoreCase()
-				.withStringMatcher(StringMatcher.CONTAINING));
+				.withStringMatcher(StringMatcher.CONTAINING)); 
 		
 		return repository.findAll();
 	}
@@ -103,6 +106,28 @@ public class LancamentoServiceImpl implements LancamentoService {
 		{
 			throw new  RegraNegocioException("Informe um tipo de lançaamento.");
 		}
+	}
+
+	@Override
+	public Optional<Lancamento> obterPorId(Long id) {
+		return repository.findById(id);
+	}
+	
+	@Transactional(readOnly = true)
+	@Override
+	public BigDecimal obterSaldoPorUsuario(Long id) {
+		BigDecimal receitas = repository.obterSaldoPorTipoLancamentoEUsuario(id, TipoLancamento.RECEITA);
+		BigDecimal despesas = repository.obterSaldoPorTipoLancamentoEUsuario(id, TipoLancamento.DESPESA);
+		
+		if(receitas == null)
+		{
+			receitas = BigDecimal.ZERO;
+		}
+		if(despesas == null)
+		{
+			despesas = BigDecimal.ZERO;
+		}
+		return receitas.subtract(despesas);
 	}
 
 }
